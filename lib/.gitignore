@@ -1,0 +1,4 @@
+*
+!.gitignore
+!**/
+!**/Release/v140/dynamic/libsodium.dll
