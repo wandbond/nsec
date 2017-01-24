@@ -1,0 +1,27 @@
+# libsodium
+
+Interop.Argon2.cs:
+  include: include/sodium/crypto_pwhash_argon2i.h
+  constants:
+  - crypto_pwhash_argon2i_ALG_ARGON2I13
+  - crypto_pwhash_argon2i_SALTBYTES
+  - crypto_pwhash_argon2i_STRBYTES
+  functions:
+  - crypto_pwhash_argon2i (ref byte out, ref byte passwd, ref byte salt)
+  - crypto_pwhash_argon2i_alg_argon2i13
+  - crypto_pwhash_argon2i_saltbytes
+  - crypto_pwhash_argon2i_str (ref byte passwd)
+  - crypto_pwhash_argon2i_str_verify (ref byte passwd)
+  - crypto_pwhash_argon2i_strbytes
+
+Interop.Scrypt.cs:
+  include: include/sodium/crypto_pwhash_scryptsalsa208sha256.h
+  constants:
+  - crypto_pwhash_scryptsalsa208sha256_SALTBYTES
+  - crypto_pwhash_scryptsalsa208sha256_STRBYTES
+  functions:
+  - crypto_pwhash_scryptsalsa208sha256 (ref byte out, ref byte passwd, ref byte salt)
+  - crypto_pwhash_scryptsalsa208sha256_saltbytes
+  - crypto_pwhash_scryptsalsa208sha256_str (ref byte passwd)
+  - crypto_pwhash_scryptsalsa208sha256_str_verify (ref byte passwd)
+  - crypto_pwhash_scryptsalsa208sha256_strbytes
