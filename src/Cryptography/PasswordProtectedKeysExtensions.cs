@@ -269,9 +269,9 @@ namespace NSec.Cryptography
                 ReadOnlySpan<byte> oid = reader.ObjectIdentifier();
                 reader.BeginSequence();
                 salt = reader.OctetString();
-                ulong cost = reader.Integer64();
-                uint blockSize = reader.Integer32();
-                uint parallelization = reader.Integer32();
+                long cost = reader.Integer64();
+                int blockSize = reader.Integer32();
+                int parallelization = reader.Integer32();
                 reader.End();
                 reader.End();
 
@@ -283,8 +283,8 @@ namespace NSec.Cryptography
                 for (int i = 6; i <= 24; i += 2)
                 {
                     @this.PickParameters(i, out ulong opslimit, out UIntPtr memlimit);
-                    Scrypt.PickParameters(opslimit, memlimit, out int N_log2, out uint p, out uint r);
-                    if ((cost == 1UL << N_log2) &&
+                    Scrypt.PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
+                    if ((cost == 1L << N_log2) &&
                         (blockSize == r) &&
                         (parallelization == p))
                     {
@@ -314,13 +314,13 @@ namespace NSec.Cryptography
             if (@this is Scrypt)
             {
                 @this.PickParameters((int)strength, out ulong opslimit, out UIntPtr memlimit);
-                Scrypt.PickParameters(opslimit, memlimit, out int N_log2, out uint p, out uint r);
+                Scrypt.PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
 
                 writer.End();
                 writer.End();
                 writer.Integer(p);
                 writer.Integer(r);
-                writer.Integer(1UL << N_log2);
+                writer.Integer(1L << N_log2);
                 writer.OctetString(salt);
                 writer.BeginSequence();
                 writer.ObjectIdentifier(s_scrypt.Bytes);
