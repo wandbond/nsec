@@ -175,6 +175,8 @@ namespace NSec.Cryptography
             {
             case KeyBlobFormat2.PkixEncryptedPrivateKey:
                 return PkixEncryptedPrivateKeyFormatter.EncryptKey(pbes, password, strength, key, blob);
+            case KeyBlobFormat2.PkixEncryptedPrivateKeyText:
+                return PkixEncryptedPrivateKeyFormatter.EncryptKeyText(pbes, password, strength, key, blob);
             default:
                 throw new FormatException();
             }
@@ -188,6 +190,8 @@ namespace NSec.Cryptography
             {
             case KeyBlobFormat2.PkixEncryptedPrivateKey:
                 return PkixEncryptedPrivateKeyFormatter.MaxBlobSize;
+            case KeyBlobFormat2.PkixEncryptedPrivateKeyText:
+                return PkixEncryptedPrivateKeyFormatter.MaxBlobTextSize;
             default:
                 throw new FormatException();
             }
@@ -206,6 +210,8 @@ namespace NSec.Cryptography
             {
             case KeyBlobFormat2.PkixEncryptedPrivateKey:
                 return PkixEncryptedPrivateKeyFormatter.TryDecryptKey(pbes, password, blob, @this, flags, out result);
+            case KeyBlobFormat2.PkixEncryptedPrivateKeyText:
+                return PkixEncryptedPrivateKeyFormatter.TryDecryptKeyText(pbes, password, blob, @this, flags, out result);
             default:
                 result = null;
                 return false;

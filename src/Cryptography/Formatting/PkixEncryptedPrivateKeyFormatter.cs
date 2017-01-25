@@ -4,9 +4,31 @@ using static Interop.Libsodium;
 
 namespace NSec.Cryptography.Formatting
 {
+    // RFC 5958
     internal static class PkixEncryptedPrivateKeyFormatter
     {
         public const int MaxBlobSize = 256;
+        public const int MaxBlobTextSize = 448;
+
+        private static readonly byte[] s_beginLabel =
+        {
+            // "-----BEGIN ENCRYPTED PRIVATE KEY-----"
+            0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x42, 0x45, 0x47,
+            0x49, 0x4E, 0x20, 0x45, 0x4E, 0x43, 0x52, 0x59,
+            0x50, 0x54, 0x45, 0x44, 0x20, 0x50, 0x52, 0x49,
+            0x56, 0x41, 0x54, 0x45, 0x20, 0x4B, 0x45, 0x59,
+            0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+        };
+
+        private static readonly byte[] s_endLabel =
+        {
+            // "-----END ENCRYPTED PRIVATE KEY-----"
+            0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x45, 0x4E, 0x44,
+            0x20, 0x45, 0x4E, 0x43, 0x52, 0x59, 0x50, 0x54,
+            0x45, 0x44, 0x20, 0x50, 0x52, 0x49, 0x56, 0x41,
+            0x54, 0x45, 0x20, 0x4B, 0x45, 0x59, 0x2D, 0x2D,
+            0x2D, 0x2D, 0x2D,
+        };
 
         public static int EncryptKey(
             PasswordBasedEncryptionScheme pbes,
@@ -46,6 +68,26 @@ namespace NSec.Cryptography.Formatting
             writer.BeginSequence();
             writer.Bytes.CopyTo(blob);
             return writer.Bytes.Length;
+        }
+
+        public static int EncryptKeyText(
+            PasswordBasedEncryptionScheme pbes,
+            string password,
+            PasswordHashStrength strength,
+            Key key,
+            Span<byte> blob)
+        {
+            Span<byte> temp = new byte[MaxBlobSize];
+            int length = EncryptKey(pbes, password, strength, key, temp);
+            int encodedLength = Armor.GetEncodedSize(length, s_beginLabel, s_endLabel);
+
+            if (blob.Length < encodedLength)
+            {
+                throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(blob)); // not enough space
+            }
+
+            Armor.Encode(temp.Slice(0, length), s_beginLabel, s_endLabel, blob.Slice(0, encodedLength));
+            return encodedLength;
         }
 
         public static bool TryDecryptKey(
@@ -94,6 +136,25 @@ namespace NSec.Cryptography.Formatting
             {
                 sodium_memzero(ref temp.DangerousGetPinnableReference(), (UIntPtr)temp.Length);
             }
+        }
+
+        public static bool TryDecryptKeyText(
+            PasswordBasedEncryptionScheme pbes,
+            string password,
+            ReadOnlySpan<byte> blob,
+            Algorithm algorithm,
+            KeyFlags flags,
+            out Key result)
+        {
+            Span<byte> temp = new byte[MaxBlobSize];
+
+            if (!Armor.TryDecode(blob, s_beginLabel, s_endLabel, temp, out int length))
+            {
+                result = null;
+                return false;
+            }
+
+            return TryDecryptKey(pbes, password, temp.Slice(0, length), algorithm, flags, out result);
         }
     }
 }
