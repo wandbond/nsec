@@ -44,8 +44,8 @@ namespace NSec.Cryptography
             ulong opslimit,
             UIntPtr memlimit,
             out int N_log2,
-            out uint p,
-            out uint r)
+            out int p,
+            out int r)
         {
             ulong maxN;
             ulong maxrp;
@@ -60,7 +60,7 @@ namespace NSec.Cryptography
             if (opslimit < (ulong)memlimit / 32)
             {
                 p = 1;
-                maxN = opslimit / (r * 4);
+                maxN = opslimit / ((ulong)r * 4);
 
                 for (N_log2 = 1; N_log2 < 63; N_log2 += 1)
                 {
@@ -89,7 +89,7 @@ namespace NSec.Cryptography
                     maxrp = 0x3fffffff;
                 }
 
-                p = (uint)maxrp / r;
+                p = (int)maxrp / r;
             }
         }
 
