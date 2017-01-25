@@ -30,7 +30,7 @@ namespace NSec.Cryptography.Formatting
                     temp = new Span<byte>(pointer, maxBlobSize);
                 }
 
-                int blobSize = key.Algorithm.ExportKey(key.Handle, KeyBlobFormat.PkixPrivateKey, temp);
+                int blobSize = key.Export(KeyBlobFormat.PkixPrivateKey, temp);
 
                 ciphertext = pbes.Encrypt(password, salt, strength, nonce, temp.Slice(0, blobSize));
             }
