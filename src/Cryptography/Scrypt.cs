@@ -32,7 +32,7 @@ namespace NSec.Cryptography
         public Scrypt() : base(
             passwordHashSize: crypto_pwhash_scryptsalsa208sha256_STRBYTES,
             saltSize: crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
-            maxStrength: (UIntPtr.Size * 8 - 21) * 2 - 1,
+            maxStrength: ((UIntPtr.Size * 8 - 1) - 21) * 2 - 1,
             minOutputSize: 0,
             maxOutputSize: int.MaxValue)
         {
@@ -98,7 +98,8 @@ namespace NSec.Cryptography
             out ulong opslimit,
             out UIntPtr memlimit)
         {
-            Debug.Assert(strength <= 86);
+            Debug.Assert((16 + strength / 2) < (8 * sizeof(ulong) - 1));
+            Debug.Assert((21 + strength / 2) < (8 * UIntPtr.Size - 1));
 
             opslimit = 1UL << (16 + strength / 2);             //  2^19, 2^22 or 2^25
             memlimit = (UIntPtr)(1UL << (21 + strength / 2));  //  2^24, 2^27 or 2^30

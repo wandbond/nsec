@@ -35,7 +35,7 @@ namespace NSec.Cryptography
         public Argon2() : base(
             passwordHashSize: crypto_pwhash_argon2i_STRBYTES,
             saltSize: crypto_pwhash_argon2i_SALTBYTES,
-            maxStrength: (UIntPtr.Size * 8 - 23) * 3 - 1,
+            maxStrength: ((UIntPtr.Size * 8 - 1) - 23) * 3 - 1,
             minOutputSize: 16,
             maxOutputSize: int.MaxValue)
         {
@@ -48,7 +48,7 @@ namespace NSec.Cryptography
             out ulong opslimit,
             out UIntPtr memlimit)
         {
-            Debug.Assert(strength <= 122);
+            Debug.Assert((23 + strength / 3) < (8 * UIntPtr.Size - 1));
 
             opslimit = (ulong)(2 + strength / 3);              //  4, 6 or 8
             memlimit = (UIntPtr)(1UL << (23 + strength / 3));  //  2^25, 2^27 or 2^29
