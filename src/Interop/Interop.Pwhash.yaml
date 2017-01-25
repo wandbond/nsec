@@ -7,7 +7,7 @@ Interop.Argon2.cs:
   - crypto_pwhash_argon2i_SALTBYTES
   - crypto_pwhash_argon2i_STRBYTES
   functions:
-  - crypto_pwhash_argon2i (ref byte out, ref byte passwd, ref byte salt)
+  - crypto_pwhash_argon2i (ref byte passwd)
   - crypto_pwhash_argon2i_alg_argon2i13
   - crypto_pwhash_argon2i_saltbytes
   - crypto_pwhash_argon2i_str (ref byte passwd)
@@ -20,7 +20,7 @@ Interop.Scrypt.cs:
   - crypto_pwhash_scryptsalsa208sha256_SALTBYTES
   - crypto_pwhash_scryptsalsa208sha256_STRBYTES
   functions:
-  - crypto_pwhash_scryptsalsa208sha256 (ref byte out, ref byte passwd, ref byte salt)
+  - crypto_pwhash_scryptsalsa208sha256 (ref byte passwd)
   - crypto_pwhash_scryptsalsa208sha256_saltbytes
   - crypto_pwhash_scryptsalsa208sha256_str (ref byte passwd)
   - crypto_pwhash_scryptsalsa208sha256_str_verify (ref byte passwd)
