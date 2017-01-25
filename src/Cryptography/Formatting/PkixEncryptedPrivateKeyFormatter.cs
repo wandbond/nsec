@@ -15,6 +15,8 @@ namespace NSec.Cryptography.Formatting
             Key key,
             Span<byte> blob)
         {
+            int maxBlobSize = Key.GetKeyBlobSize(key.Algorithm, KeyBlobFormat.PkixPrivateKey);
+
             ReadOnlySpan<byte> salt = SecureRandom.GenerateBytes(pbes.PasswordHashAlgorithm.SaltSize);
             ReadOnlySpan<byte> nonce = SecureRandom.GenerateBytes(pbes.EncryptionAlgorithm.MaxNonceSize);
             ReadOnlySpan<byte> ciphertext;
@@ -24,7 +26,6 @@ namespace NSec.Cryptography.Formatting
             {
                 unsafe
                 {
-                    int maxBlobSize = Key.GetKeyBlobSize(key.Algorithm, KeyBlobFormat.PkixPrivateKey);
                     byte* pointer = stackalloc byte[maxBlobSize];
                     temp = new Span<byte>(pointer, maxBlobSize);
                 }
@@ -63,7 +64,10 @@ namespace NSec.Cryptography.Formatting
             reader.End();
             success &= reader.Success;
 
-            if (!success || ciphertext.Length < pbes.EncryptionAlgorithm.TagSize)
+            int maxBlobSize = Key.GetKeyBlobSize(algorithm, KeyBlobFormat.PkixPrivateKey);
+            int blobSize = ciphertext.Length - pbes.EncryptionAlgorithm.TagSize;
+
+            if (!success || blobSize < 0 || blobSize > maxBlobSize)
             {
                 result = null;
                 return false;
@@ -74,8 +78,6 @@ namespace NSec.Cryptography.Formatting
             {
                 unsafe
                 {
-                    int maxBlobSize = Key.GetKeyBlobSize(algorithm, KeyBlobFormat.PkixPrivateKey);
-                    int blobSize = Math.Min(ciphertext.Length - pbes.EncryptionAlgorithm.TagSize, maxBlobSize);
                     byte* pointer = stackalloc byte[blobSize];
                     temp = new Span<byte>(pointer, blobSize);
                 }
