@@ -93,7 +93,7 @@ namespace NSec.Cryptography
     internal static class AeadAlgorithmExtensions
     {
         private static readonly Oid s_aes = new Oid(2, 16, 840, 1, 101, 3, 4, 1, 46);
-        private static readonly Oid s_chacha = new Oid(1, 2, 840, 113549, 1, 9, 16, 3, 99999);
+        private static readonly Oid s_chacha = new Oid(1, 2, 840, 113549, 1, 9, 16, 3, 18);
 
         internal static bool TryReadAlgorithmIdentifier(
             this AeadAlgorithm @this,
