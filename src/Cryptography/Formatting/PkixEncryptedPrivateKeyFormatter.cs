@@ -104,7 +104,7 @@ namespace NSec.Cryptography.Formatting
             success &= pbes.TryReadAlgorithmIdentifier(ref reader, out ReadOnlySpan<byte> salt, out PasswordHashStrength strength, out ReadOnlySpan<byte> nonce);
             ReadOnlySpan<byte> ciphertext = reader.OctetString();
             reader.End();
-            success &= reader.Success;
+            success &= reader.SuccessComplete;
 
             int maxBlobSize = Key.GetKeyBlobSize(algorithm, KeyBlobFormat.PkixPrivateKey);
             int blobSize = ciphertext.Length - pbes.EncryptionAlgorithm.TagSize;
