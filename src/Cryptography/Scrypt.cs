@@ -176,6 +176,7 @@ namespace NSec.Cryptography
                     PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
                     if ((cost == 1L << N_log2) && (blockSize == r) && (parallelization == p))
                     {
+                        strength = (PasswordHashStrength)i;
                         return true;
                     }
                 }
