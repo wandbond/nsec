@@ -148,8 +148,7 @@ namespace NSec.Cryptography
         internal override bool TryReadAlgorithmIdentifier(
             ref Asn1Reader reader,
             out ReadOnlySpan<byte> salt,
-            out ulong opslimit,
-            out UIntPtr memlimit)
+            out PasswordHashStrength strength)
         {
             bool success = true;
             reader.BeginSequence();
@@ -168,12 +167,12 @@ namespace NSec.Cryptography
             // parallelization directly to the scrypt implementation, so we
             // search for an opslimit and memlimit pair that yields the same
             // values.
-            opslimit = 0;
-            memlimit = UIntPtr.Zero;
+            strength = 0;
             if (success)
             {
                 for (int i = 6; i <= 24; i += 2)
                 {
+                    PickParameters(i, out ulong opslimit, out UIntPtr memlimit);
                     PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
                     if ((cost == 1L << N_log2) && (blockSize == r) && (parallelization == p))
                     {
@@ -202,9 +201,9 @@ namespace NSec.Cryptography
         internal override void WriteAlgorithmIdentifier(
             ref Asn1Writer writer,
             ReadOnlySpan<byte> salt,
-            ulong opslimit,
-            UIntPtr memlimit)
+            PasswordHashStrength strength)
         {
+            PickParameters((int)strength, out ulong opslimit, out UIntPtr memlimit);
             PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
 
             writer.End();

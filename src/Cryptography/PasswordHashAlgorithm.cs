@@ -277,8 +277,7 @@ namespace NSec.Cryptography
         internal virtual bool TryReadAlgorithmIdentifier(
            ref Asn1Reader reader,
            out ReadOnlySpan<byte> salt,
-           out ulong opslimit,
-           out UIntPtr memlimit)
+           out PasswordHashStrength strength)
         {
             throw new NotSupportedException();
         }
@@ -290,8 +289,7 @@ namespace NSec.Cryptography
         internal virtual void WriteAlgorithmIdentifier(
             ref Asn1Writer writer,
             ReadOnlySpan<byte> salt,
-            ulong opslimit,
-            UIntPtr memlimit)
+            PasswordHashStrength strength)
         {
             throw new NotSupportedException();
         }
