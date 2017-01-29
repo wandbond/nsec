@@ -1,4 +1,5 @@
 using System;
+using NSec.Cryptography.Formatting;
 
 namespace NSec.Cryptography.PasswordBased
 {
@@ -23,6 +24,8 @@ namespace NSec.Cryptography.PasswordBased
     {
         private readonly AeadAlgorithm _encryptionAlgorithm;
         private readonly PasswordHashAlgorithm _passwordHashAlgorithm;
+
+        private static readonly Oid s_oid = new Oid(1, 2, 840, 113549, 1, 5, 13);
 
         public PasswordBasedEncryptionScheme(
             PasswordHashAlgorithm passwordHashAlgorithm,
@@ -121,6 +124,39 @@ namespace NSec.Cryptography.PasswordBased
             {
                 return _encryptionAlgorithm.TryDecrypt(key, nonce, ReadOnlySpan<byte>.Empty, ciphertext, plaintext);
             }
+        }
+
+        internal bool TryReadAlgorithmIdentifier(
+            ref Asn1Reader reader,
+            out ReadOnlySpan<byte> salt,
+            out PasswordHashStrength strength,
+            out ReadOnlySpan<byte> nonce)
+        {
+            bool success = true;
+            reader.BeginSequence();
+            success &= reader.ObjectIdentifier().SequenceEqual(s_oid.Bytes);
+            reader.BeginSequence();
+            success &= PasswordHashAlgorithm.TryReadAlgorithmIdentifier(ref reader, out salt, out strength);
+            success &= EncryptionAlgorithm.TryReadAlgorithmIdentifier(ref reader, out nonce);
+            reader.End();
+            reader.End();
+            success &= reader.Success;
+            return success;
+        }
+
+        internal void WriteAlgorithmIdentifier(
+            ref Asn1Writer writer,
+            ReadOnlySpan<byte> salt,
+            PasswordHashStrength strength,
+            ReadOnlySpan<byte> nonce)
+        {
+            writer.End();
+            writer.End();
+            EncryptionAlgorithm.WriteAlgorithmIdentifier(ref writer, nonce);
+            PasswordHashAlgorithm.WriteAlgorithmIdentifier(ref writer, salt, strength);
+            writer.BeginSequence();
+            writer.ObjectIdentifier(s_oid.Bytes);
+            writer.BeginSequence();
         }
     }
 }
