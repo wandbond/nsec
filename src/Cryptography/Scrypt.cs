@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using NSec.Cryptography.Formatting;
 using static Interop.Libsodium;
 
 namespace NSec.Cryptography
@@ -144,6 +145,46 @@ namespace NSec.Cryptography
             return error == 0;
         }
 
+        internal override bool TryReadAlgorithmIdentifier(
+            ref Asn1Reader reader,
+            out ReadOnlySpan<byte> salt,
+            out ulong opslimit,
+            out UIntPtr memlimit)
+        {
+            bool success = true;
+            reader.BeginSequence();
+            success &= reader.ObjectIdentifier().SequenceEqual(s_oid.Bytes);
+            reader.BeginSequence();
+            salt = reader.OctetString();
+            success &= (salt.Length == crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
+            long cost = reader.Integer64();
+            int blockSize = reader.Integer32();
+            int parallelization = reader.Integer32();
+            reader.End();
+            reader.End();
+            success &= reader.Success;
+
+            // libsodium does not allow passing cost, blockSize and 
+            // parallelization directly to the scrypt implementation, so we
+            // search for an opslimit and memlimit pair that yields the same
+            // values.
+            opslimit = 0;
+            memlimit = UIntPtr.Zero;
+            if (success)
+            {
+                for (int i = 6; i <= 24; i += 2)
+                {
+                    PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
+                    if ((cost == 1L << N_log2) && (blockSize == r) && (parallelization == p))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         internal override bool TryVerifyPasswordCore(
             ReadOnlySpan<byte> password,
             ReadOnlySpan<sbyte> passwordHash)
@@ -156,6 +197,25 @@ namespace NSec.Cryptography
                 (ulong)password.Length);
 
             return error == 0;
+        }
+
+        internal override void WriteAlgorithmIdentifier(
+            ref Asn1Writer writer,
+            ReadOnlySpan<byte> salt,
+            ulong opslimit,
+            UIntPtr memlimit)
+        {
+            PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
+
+            writer.End();
+            writer.End();
+            writer.Integer(p);
+            writer.Integer(r);
+            writer.Integer(1L << N_log2);
+            writer.OctetString(salt);
+            writer.BeginSequence();
+            writer.ObjectIdentifier(s_oid.Bytes);
+            writer.BeginSequence();
         }
 
         private static bool SelfTest()

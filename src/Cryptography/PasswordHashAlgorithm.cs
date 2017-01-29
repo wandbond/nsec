@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using NSec.Cryptography.Formatting;
 using static Interop.Libsodium;
 
 namespace NSec.Cryptography
@@ -273,9 +274,27 @@ namespace NSec.Cryptography
             UIntPtr memlimit,
             Span<sbyte> passwordHash);
 
+        internal virtual bool TryReadAlgorithmIdentifier(
+           ref Asn1Reader reader,
+           out ReadOnlySpan<byte> salt,
+           out ulong opslimit,
+           out UIntPtr memlimit)
+        {
+            throw new NotSupportedException();
+        }
+
         internal abstract bool TryVerifyPasswordCore(
             ReadOnlySpan<byte> password,
             ReadOnlySpan<sbyte> passwordHash);
+
+        internal virtual void WriteAlgorithmIdentifier(
+            ref Asn1Writer writer,
+            ReadOnlySpan<byte> salt,
+            ulong opslimit,
+            UIntPtr memlimit)
+        {
+            throw new NotSupportedException();
+        }
 
         private static string ConvertToString(sbyte[] ascii, int passwordHashSize)
         {
