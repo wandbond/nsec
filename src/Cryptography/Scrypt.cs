@@ -14,7 +14,22 @@ namespace NSec.Cryptography
     //
     //  Parameters
     //
-    //      TODO
+    //      Password Size - Any length.
+    //
+    //      Salt Size - libsodium uses a length of 32 bytes.
+    //
+    //      Block Size (r) - libsodium does not allow this parameter to be
+    //          specified and always uses a default value of 8.
+    //
+    //      CPU/Memory Cost (N) - Must be larger than 1, a power of 2, and less
+    //          than 2^(128*r/8). libsodium computes this parameter from the
+    //          'opslimit' and 'memlimit' arguments.
+    //
+    //      Parallelization (p) - A positive integer less than or equal to
+    //          ((2^32-1)*32)/(128*r). libsodium computes this parameter from
+    //          the 'opslimit' and 'memlimit' arguments.
+    //
+    //      Output Size - A positive integer less than or equal to (2^32-1)*32.
     //
     //  Parameter Presets
     //
