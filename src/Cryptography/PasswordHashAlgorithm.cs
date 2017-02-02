@@ -132,7 +132,7 @@ namespace NSec.Cryptography
             if (algorithm == null)
                 throw new ArgumentNullException(nameof(algorithm));
 
-            int keySize = algorithm.GetDerivedKeySize();
+            int keySize = algorithm.GetDefaultKeySize();
             if (keySize < _minOutputSize)
                 throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(algorithm));
             if (keySize > _maxOutputSize)
@@ -142,6 +142,7 @@ namespace NSec.Cryptography
             ReadOnlySpan<byte> utf8Password = Encoding.UTF8.GetBytes(password); // TODO: avoid placing sensitive data in managed memory
 
             SecureMemoryHandle keyHandle = null;
+            byte[] publicKeyBytes = null;
             bool success = false;
 
             try
@@ -151,6 +152,7 @@ namespace NSec.Cryptography
                 {
                     throw new CryptographicException();
                 }
+                algorithm.CreateKey(keyHandle, out publicKeyBytes);
                 success = true;
             }
             finally
@@ -161,7 +163,7 @@ namespace NSec.Cryptography
                 }
             }
 
-            return new Key(algorithm, flags, keyHandle, null);
+            return new Key(algorithm, flags, keyHandle, publicKeyBytes);
         }
 
         public string HashPassword(
