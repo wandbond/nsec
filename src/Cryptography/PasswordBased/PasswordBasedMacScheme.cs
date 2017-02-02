@@ -45,12 +45,11 @@ namespace NSec.Cryptography.PasswordBased
             string password,
             ReadOnlySpan<byte> salt,
             PasswordHashStrength strength,
-            ReadOnlySpan<byte> nonce,
             ReadOnlySpan<byte> data)
         {
             using (Key key = _passwordHashAlgorithm.DeriveKey(password, salt, strength, _macAlgorithm))
             {
-                return _macAlgorithm.Sign(key, nonce, data);
+                return _macAlgorithm.Sign(key, data);
             }
         }
 
@@ -58,13 +57,12 @@ namespace NSec.Cryptography.PasswordBased
             string password,
             ReadOnlySpan<byte> salt,
             PasswordHashStrength strength,
-            ReadOnlySpan<byte> nonce,
             ReadOnlySpan<byte> data,
             int macSize)
         {
             using (Key key = _passwordHashAlgorithm.DeriveKey(password, salt, strength, _macAlgorithm))
             {
-                return _macAlgorithm.Sign(key, nonce, data, macSize);
+                return _macAlgorithm.Sign(key, data, macSize);
             }
         }
 
@@ -72,13 +70,12 @@ namespace NSec.Cryptography.PasswordBased
             string password,
             ReadOnlySpan<byte> salt,
             PasswordHashStrength strength,
-            ReadOnlySpan<byte> nonce,
             ReadOnlySpan<byte> data,
             Span<byte> mac)
         {
             using (Key key = _passwordHashAlgorithm.DeriveKey(password, salt, strength, _macAlgorithm))
             {
-                _macAlgorithm.Sign(key, nonce, data, mac);
+                _macAlgorithm.Sign(key, data, mac);
             }
         }
 
@@ -86,13 +83,12 @@ namespace NSec.Cryptography.PasswordBased
             string password,
             ReadOnlySpan<byte> salt,
             PasswordHashStrength strength,
-            ReadOnlySpan<byte> nonce,
             ReadOnlySpan<byte> data,
             ReadOnlySpan<byte> mac)
         {
             using (Key key = _passwordHashAlgorithm.DeriveKey(password, salt, strength, _macAlgorithm))
             {
-                return _macAlgorithm.TryVerify(key, nonce, data, mac);
+                return _macAlgorithm.TryVerify(key, data, mac);
             }
         }
 
@@ -100,13 +96,12 @@ namespace NSec.Cryptography.PasswordBased
             string password,
             ReadOnlySpan<byte> salt,
             PasswordHashStrength strength,
-            ReadOnlySpan<byte> nonce,
             ReadOnlySpan<byte> data,
             ReadOnlySpan<byte> mac)
         {
             using (Key key = _passwordHashAlgorithm.DeriveKey(password, salt, strength, _macAlgorithm))
             {
-                _macAlgorithm.Verify(key, nonce, data, mac);
+                _macAlgorithm.Verify(key, data, mac);
             }
         }
     }
