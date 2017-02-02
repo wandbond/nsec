@@ -87,6 +87,17 @@ namespace NSec.Tests.Base
 
         [Theory]
         [MemberData(nameof(PasswordHashAlgorithms))]
+        public static void DeriveBytesWithSmallCount(Type algorithmType)
+        {
+            var a = (PasswordHashAlgorithm)Activator.CreateInstance(algorithmType);
+
+            var b = a.DeriveBytes(s_password, new byte[a.SaltSize], PasswordHashStrength.Interactive, 3);
+            Assert.NotNull(b);
+            Assert.Equal(3, b.Length);
+        }
+
+        [Theory]
+        [MemberData(nameof(PasswordHashAlgorithms))]
         public static void DeriveBytesSuccess(Type algorithmType)
         {
             var a = (PasswordHashAlgorithm)Activator.CreateInstance(algorithmType);
@@ -152,6 +163,15 @@ namespace NSec.Tests.Base
             var a = (PasswordHashAlgorithm)Activator.CreateInstance(algorithmType);
 
             a.DeriveBytes(s_password, new byte[a.SaltSize], PasswordHashStrength.Interactive, new byte[0]);
+        }
+
+        [Theory]
+        [MemberData(nameof(PasswordHashAlgorithms))]
+        public static void DeriveBytesWithSpanWithSmallCount(Type algorithmType)
+        {
+            var a = (PasswordHashAlgorithm)Activator.CreateInstance(algorithmType);
+
+            a.DeriveBytes(s_password, new byte[a.SaltSize], PasswordHashStrength.Interactive, new byte[3]);
         }
 
         [Theory]
