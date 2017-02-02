@@ -30,6 +30,8 @@ namespace NSec.Cryptography
     //
     public sealed class Argon2 : PasswordHashAlgorithm
     {
+        private const int ARGON2_MIN_OUTLEN = 16;
+
         private static readonly Lazy<bool> s_selfTest = new Lazy<bool>(new Func<bool>(SelfTest));
 
         public Argon2() : base(
@@ -61,16 +63,50 @@ namespace NSec.Cryptography
             Span<byte> bytes)
         {
             Debug.Assert(salt.Length == crypto_pwhash_argon2i_SALTBYTES);
+            Debug.Assert(!bytes.IsEmpty);
 
-            int error = crypto_pwhash_argon2i(
-                ref bytes.DangerousGetPinnableReference(),
-                (ulong)bytes.Length,
-                ref password.DangerousGetPinnableReference(),
-                (ulong)password.Length,
-                ref salt.DangerousGetPinnableReference(),
-                opslimit,
-                memlimit,
-                crypto_pwhash_argon2i_ALG_ARGON2I13);
+            int error;
+
+            if (bytes.Length >= ARGON2_MIN_OUTLEN)
+            {
+                error = crypto_pwhash_argon2i(
+                    ref bytes.DangerousGetPinnableReference(),
+                    (ulong)bytes.Length,
+                    ref password.DangerousGetPinnableReference(),
+                    (ulong)password.Length,
+                    ref salt.DangerousGetPinnableReference(),
+                    opslimit,
+                    memlimit,
+                    crypto_pwhash_argon2i_ALG_ARGON2I13);
+            }
+            else
+            {
+                Span<byte> temp;
+                try
+                {
+                    unsafe
+                    {
+                        byte* pointer = stackalloc byte[ARGON2_MIN_OUTLEN];
+                        temp = new Span<byte>(pointer, ARGON2_MIN_OUTLEN);
+                    }
+
+                    error = crypto_pwhash_argon2i(
+                        ref temp.DangerousGetPinnableReference(),
+                        (ulong)temp.Length,
+                        ref password.DangerousGetPinnableReference(),
+                        (ulong)password.Length,
+                        ref salt.DangerousGetPinnableReference(),
+                        opslimit,
+                        memlimit,
+                        crypto_pwhash_argon2i_ALG_ARGON2I13);
+
+                    temp.Slice(0, bytes.Length).CopyTo(bytes);
+                }
+                finally
+                {
+                    sodium_memzero(ref temp.DangerousGetPinnableReference(), (UIntPtr)temp.Length);
+                }
+            }
 
             return error == 0;
         }
