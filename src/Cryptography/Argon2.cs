@@ -18,7 +18,27 @@ namespace NSec.Cryptography
     //
     //  Parameters
     //
-    //      TODO
+    //      Password Size - Any length from 0 to 2^32-1 bytes.
+    //
+    //      Salt Size - Any length from 8 to 2^32-1 bytes. 16 bytes is
+    //          recommended for password hashing and is the only value allowed
+    //          by libsodium.
+    //
+    //      Degree of Parallelism (p) - Any integer value from 1 to 2**24-1.
+    //          libsodium does not allow this parameter to be specified and
+    //          always uses a default value of 1.
+    //
+    //      Memory Size (m) - Any integer number of kibibytes from 8*p to
+    //          2^32-1. libsodium allows this parameter to be specified using
+    //          the 'memlimit' argument, which is in bytes rather than
+    //          kibibytes.
+    //
+    //      Number of Iterations (t) - Any integer number from 1 to 2^32-1.
+    //          libsodium allows this parameter to be specified using
+    //          the 'opslimit' argument.
+    //
+    //      Tag Size - Any integer number of bytes from 4 to 2^32-1. 128 bits
+    //          is sufficient for most applications, including key derivation.
     //
     //  Parameter Presets
     //
