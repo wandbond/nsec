@@ -52,12 +52,14 @@ namespace NSec.Cryptography
     {
         private const int ARGON2_MIN_OUTLEN = 16;
 
+        private static readonly int ARGON2_MAX_MEMORY_BITS = Math.Min(32, UIntPtr.Size * 8 - 10 - 1) + 10;
+
         private static readonly Lazy<bool> s_selfTest = new Lazy<bool>(new Func<bool>(SelfTest));
 
         public Argon2() : base(
             passwordHashSize: crypto_pwhash_argon2i_STRBYTES,
             saltSize: crypto_pwhash_argon2i_SALTBYTES,
-            maxStrength: ((UIntPtr.Size * 8 - 1) - 23) * 3 - 1,
+            maxStrength: (ARGON2_MAX_MEMORY_BITS - 23) * 3 - 1,
             maxOutputSize: int.MaxValue)
         {
             if (!s_selfTest.Value)
@@ -69,7 +71,7 @@ namespace NSec.Cryptography
             out ulong opslimit,
             out UIntPtr memlimit)
         {
-            Debug.Assert((23 + strength / 3) < (8 * UIntPtr.Size - 1));
+            Debug.Assert((23 + strength / 3) < ARGON2_MAX_MEMORY_BITS);
 
             opslimit = (ulong)(2 + strength / 3);              //  4, 6 or 8
             memlimit = (UIntPtr)(1UL << (23 + strength / 3));  //  2^25, 2^27 or 2^29
