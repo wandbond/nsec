@@ -34,7 +34,6 @@ namespace NSec.Cryptography
             passwordHashSize: crypto_pwhash_scryptsalsa208sha256_STRBYTES,
             saltSize: crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
             maxStrength: ((UIntPtr.Size * 8 - 1) - 21) * 2 - 1,
-            minOutputSize: 0,
             maxOutputSize: int.MaxValue)
         {
             if (!s_selfTest.Value)

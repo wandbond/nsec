@@ -22,7 +22,6 @@ namespace NSec.Cryptography
     {
         private readonly int _maxOutputSize;
         private readonly int _maxStrength;
-        private readonly int _minOutputSize;
         private readonly int _passwordHashSize;
         private readonly int _saltSize;
 
@@ -30,25 +29,20 @@ namespace NSec.Cryptography
             int passwordHashSize,
             int saltSize,
             int maxStrength,
-            int minOutputSize,
             int maxOutputSize)
         {
             Debug.Assert(passwordHashSize > 0);
             Debug.Assert(saltSize > 0);
             Debug.Assert(maxStrength >= 6);
-            Debug.Assert(minOutputSize >= 0);
-            Debug.Assert(maxOutputSize >= minOutputSize);
+            Debug.Assert(maxOutputSize > 0);
 
             _passwordHashSize = passwordHashSize;
             _saltSize = saltSize;
             _maxStrength = maxStrength;
-            _minOutputSize = minOutputSize;
             _maxOutputSize = maxOutputSize;
         }
 
         public int MaxOutputSize => _maxOutputSize;
-
-        public int MinOutputSize => _minOutputSize;
 
         public int SaltSize => _saltSize;
 
@@ -66,7 +60,7 @@ namespace NSec.Cryptography
                 throw new ArgumentOutOfRangeException(nameof(strength));
             if (strength > (PasswordHashStrength)_maxStrength)
                 throw new ArgumentOutOfRangeException(nameof(strength));
-            if (count < _minOutputSize)
+            if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (count > _maxOutputSize)
                 throw new ArgumentOutOfRangeException(nameof(count));
@@ -98,8 +92,6 @@ namespace NSec.Cryptography
                 throw new ArgumentOutOfRangeException(nameof(strength));
             if (strength > (PasswordHashStrength)_maxStrength)
                 throw new ArgumentOutOfRangeException(nameof(strength));
-            if (bytes.Length < _minOutputSize)
-                throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(bytes));
             if (bytes.Length > _maxOutputSize)
                 throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(bytes));
             if (bytes.IsEmpty)
@@ -133,8 +125,6 @@ namespace NSec.Cryptography
                 throw new ArgumentNullException(nameof(algorithm));
 
             int keySize = algorithm.GetDefaultKeySize();
-            if (keySize < _minOutputSize)
-                throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(algorithm));
             if (keySize > _maxOutputSize)
                 throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(algorithm));
 

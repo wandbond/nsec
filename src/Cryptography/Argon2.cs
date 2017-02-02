@@ -36,7 +36,6 @@ namespace NSec.Cryptography
             passwordHashSize: crypto_pwhash_argon2i_STRBYTES,
             saltSize: crypto_pwhash_argon2i_SALTBYTES,
             maxStrength: ((UIntPtr.Size * 8 - 1) - 23) * 3 - 1,
-            minOutputSize: 16,
             maxOutputSize: int.MaxValue)
         {
             if (!s_selfTest.Value)
