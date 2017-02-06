@@ -124,36 +124,9 @@ namespace NSec.Cryptography
             if (algorithm == null)
                 throw new ArgumentNullException(nameof(algorithm));
 
-            int keySize = algorithm.GetDefaultKeySize();
-            if (keySize > _maxOutputSize)
-                throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(algorithm));
-
             PickParameters((int)strength, out PasswordHashParameters parameters);
-            ReadOnlySpan<byte> utf8Password = Encoding.UTF8.GetBytes(password); // TODO: avoid placing sensitive data in managed memory
 
-            SecureMemoryHandle keyHandle = null;
-            byte[] publicKeyBytes = null;
-            bool success = false;
-
-            try
-            {
-                SecureMemoryHandle.Alloc(keySize, out keyHandle);
-                if (!TryDeriveKeyCore(utf8Password, salt, ref parameters, keyHandle))
-                {
-                    throw new CryptographicException();
-                }
-                algorithm.CreateKey(keyHandle, out publicKeyBytes);
-                success = true;
-            }
-            finally
-            {
-                if (!success && keyHandle != null)
-                {
-                    keyHandle.Dispose();
-                }
-            }
-
-            return new Key(algorithm, flags, keyHandle, publicKeyBytes);
+            return DeriveKey(password, salt, ref parameters, algorithm, flags);
         }
 
         public string HashPassword(
@@ -223,6 +196,53 @@ namespace NSec.Cryptography
             {
                 throw new CryptographicException();
             }
+        }
+
+        internal Key DeriveKey(
+            string password,
+            ReadOnlySpan<byte> salt,
+            ref PasswordHashParameters parameters,
+            Algorithm algorithm,
+            KeyFlags flags = KeyFlags.None)
+        {
+            if (password == null)
+                throw new ArgumentNullException(nameof(password));
+            if (salt.Length != _saltSize)
+                throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(salt));
+            if (parameters.Algorithm != this)
+                throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(parameters));
+            if (algorithm == null)
+                throw new ArgumentNullException(nameof(algorithm));
+
+            int keySize = algorithm.GetDefaultKeySize();
+            if (keySize > _maxOutputSize)
+                throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(algorithm));
+
+            ReadOnlySpan<byte> utf8Password = Encoding.UTF8.GetBytes(password); // TODO: avoid placing sensitive data in managed memory
+
+            SecureMemoryHandle keyHandle = null;
+            byte[] publicKeyBytes = null;
+            bool success = false;
+
+            try
+            {
+                SecureMemoryHandle.Alloc(keySize, out keyHandle);
+                if (!TryDeriveKeyCore(utf8Password, salt, ref parameters, keyHandle))
+                {
+                    throw new CryptographicException();
+                }
+                algorithm.CreateKey(keyHandle, out publicKeyBytes);
+                success = true;
+            }
+            finally
+            {
+                if (!success && keyHandle != null)
+                {
+                    keyHandle.Dispose();
+                }
+            }
+
+            return new Key(algorithm, flags, keyHandle, publicKeyBytes);
         }
 
         internal abstract void PickParameters(
