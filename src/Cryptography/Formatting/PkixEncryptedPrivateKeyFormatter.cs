@@ -40,7 +40,7 @@ namespace NSec.Cryptography.Formatting
             int maxBlobSize = Key.GetKeyBlobSize(key.Algorithm, KeyBlobFormat.PkixPrivateKey);
 
             ReadOnlySpan<byte> salt = SecureRandom.GenerateBytes(pbes.PasswordHashAlgorithm.SaltSize);
-            ReadOnlySpan<byte> nonce = SecureRandom.GenerateBytes(pbes.EncryptionAlgorithm.MaxNonceSize);
+            ReadOnlySpan<byte> nonce = SecureRandom.GenerateBytes(pbes.EncryptionAlgorithm.NonceSize);
             ReadOnlySpan<byte> ciphertext;
 
             Span<byte> temp;
