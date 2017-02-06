@@ -61,10 +61,12 @@ namespace NSec.Cryptography.Formatting
                 sodium_memzero(ref temp.DangerousGetPinnableReference(), (UIntPtr)temp.Length);
             }
 
+            pbes.PasswordHashAlgorithm.PickParameters((int)strength, out PasswordHashParameters parameters);
+
             Asn1Writer writer = new Asn1Writer(ref blob);
             writer.End();
             writer.OctetString(ciphertext);
-            pbes.WriteAlgorithmIdentifier(ref writer, salt, strength, nonce);
+            pbes.WriteAlgorithmIdentifier(ref writer, salt, ref parameters, nonce);
             writer.BeginSequence();
             writer.Bytes.CopyTo(blob);
             return writer.Bytes.Length;
@@ -101,7 +103,7 @@ namespace NSec.Cryptography.Formatting
             Asn1Reader reader = new Asn1Reader(ref blob);
             bool success = true;
             reader.BeginSequence();
-            success &= pbes.TryReadAlgorithmIdentifier(ref reader, out ReadOnlySpan<byte> salt, out PasswordHashStrength strength, out ReadOnlySpan<byte> nonce);
+            success &= pbes.TryReadAlgorithmIdentifier(ref reader, out ReadOnlySpan<byte> salt, out PasswordHashParameters parameters, out ReadOnlySpan<byte> nonce);
             ReadOnlySpan<byte> ciphertext = reader.OctetString();
             reader.End();
             success &= reader.SuccessComplete;
@@ -124,7 +126,7 @@ namespace NSec.Cryptography.Formatting
                     temp = new Span<byte>(pointer, blobSize);
                 }
 
-                if (!pbes.TryDecrypt(password, salt, strength, nonce, ciphertext, temp))
+                if (!pbes.TryDecrypt(password, salt, ref parameters, nonce, ciphertext, temp))
                 {
                     result = null;
                     return false;
