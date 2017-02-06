@@ -20,7 +20,7 @@ Interop.Scrypt.cs:
   - crypto_pwhash_scryptsalsa208sha256_SALTBYTES
   - crypto_pwhash_scryptsalsa208sha256_STRBYTES
   functions:
-  - crypto_pwhash_scryptsalsa208sha256 (ref byte passwd)
+  - crypto_pwhash_scryptsalsa208sha256_ll (ref byte passwd)
   - crypto_pwhash_scryptsalsa208sha256_saltbytes
   - crypto_pwhash_scryptsalsa208sha256_str (ref byte passwd)
   - crypto_pwhash_scryptsalsa208sha256_str_verify (ref byte passwd)

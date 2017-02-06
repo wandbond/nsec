@@ -67,11 +67,11 @@ namespace NSec.Cryptography
             if (count == 0)
                 return new byte[0];
 
-            PickParameters((int)strength, out ulong opslimit, out UIntPtr memlimit);
+            PickParameters((int)strength, out PasswordHashParameters parameters);
             ReadOnlySpan<byte> utf8Password = Encoding.UTF8.GetBytes(password); // TODO: avoid placing sensitive data in managed memory
 
             byte[] bytes = new byte[count];
-            if (!TryDeriveBytesCore(utf8Password, salt, opslimit, memlimit, bytes))
+            if (!TryDeriveBytesCore(utf8Password, salt, ref parameters, bytes))
             {
                 throw new CryptographicException();
             }
@@ -97,10 +97,10 @@ namespace NSec.Cryptography
             if (bytes.IsEmpty)
                 return;
 
-            PickParameters((int)strength, out ulong opslimit, out UIntPtr memlimit);
+            PickParameters((int)strength, out PasswordHashParameters parameters);
             ReadOnlySpan<byte> utf8Password = Encoding.UTF8.GetBytes(password); // TODO: avoid placing sensitive data in managed memory
 
-            if (!TryDeriveBytesCore(utf8Password, salt, opslimit, memlimit, bytes))
+            if (!TryDeriveBytesCore(utf8Password, salt, ref parameters, bytes))
             {
                 throw new CryptographicException();
             }
@@ -128,7 +128,7 @@ namespace NSec.Cryptography
             if (keySize > _maxOutputSize)
                 throw new ArgumentException(Error.ArgumentExceptionMessage, nameof(algorithm));
 
-            PickParameters((int)strength, out ulong opslimit, out UIntPtr memlimit);
+            PickParameters((int)strength, out PasswordHashParameters parameters);
             ReadOnlySpan<byte> utf8Password = Encoding.UTF8.GetBytes(password); // TODO: avoid placing sensitive data in managed memory
 
             SecureMemoryHandle keyHandle = null;
@@ -138,7 +138,7 @@ namespace NSec.Cryptography
             try
             {
                 SecureMemoryHandle.Alloc(keySize, out keyHandle);
-                if (!TryDeriveKeyCore(utf8Password, salt, opslimit, memlimit, keyHandle))
+                if (!TryDeriveKeyCore(utf8Password, salt, ref parameters, keyHandle))
                 {
                     throw new CryptographicException();
                 }
@@ -230,18 +230,20 @@ namespace NSec.Cryptography
             out ulong opslimit,
             out UIntPtr memlimit);
 
+        internal abstract void PickParameters(
+            int strength,
+            out PasswordHashParameters parameters);
+
         internal abstract bool TryDeriveBytesCore(
             ReadOnlySpan<byte> password,
             ReadOnlySpan<byte> salt,
-            ulong opslimit,
-            UIntPtr memlimit,
+            ref PasswordHashParameters parameters,
             Span<byte> bytes);
 
         internal virtual bool TryDeriveKeyCore(
             ReadOnlySpan<byte> password,
             ReadOnlySpan<byte> salt,
-            ulong opslimit,
-            UIntPtr memlimit,
+            ref PasswordHashParameters parameters,
             SecureMemoryHandle keyHandle)
         {
             bool addedRef = false;
@@ -249,7 +251,7 @@ namespace NSec.Cryptography
             {
                 keyHandle.DangerousAddRef(ref addedRef);
 
-                return TryDeriveBytesCore(password, salt, opslimit, memlimit, keyHandle.DangerousGetSpan());
+                return TryDeriveBytesCore(password, salt, ref parameters, keyHandle.DangerousGetSpan());
             }
             finally
             {

@@ -9,14 +9,16 @@ internal static partial class Interop
         internal const int crypto_pwhash_scryptsalsa208sha256_STRBYTES = 102;
 
         [DllImport(Libraries.Libsodium, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int crypto_pwhash_scryptsalsa208sha256(
-            ref byte @out,
-            ulong outlen,
+        internal static extern int crypto_pwhash_scryptsalsa208sha256_ll(
             ref byte passwd,
-            ulong passwdlen,
+            UIntPtr passwdlen,
             ref byte salt,
-            ulong opslimit,
-            UIntPtr memlimit);
+            UIntPtr saltlen,
+            ulong N,
+            uint r,
+            uint p,
+            ref byte buf,
+            UIntPtr buflen);
 
         [DllImport(Libraries.Libsodium, CallingConvention = CallingConvention.Cdecl)]
         internal static extern UIntPtr crypto_pwhash_scryptsalsa208sha256_saltbytes();

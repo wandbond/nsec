@@ -77,14 +77,31 @@ namespace NSec.Cryptography
             memlimit = (UIntPtr)(1UL << (23 + strength / 3));  //  2^25, 2^27 or 2^29
         }
 
+        internal override void PickParameters(
+            int strength,
+            out PasswordHashParameters parameters)
+        {
+            PickParameters(strength, out ulong opslimit, out UIntPtr memlimit);
+
+            parameters.Algorithm = this;
+            parameters.ScryptParameters = default(ScryptParameters);
+            parameters.Argon2Parameters = new Argon2Parameters
+            {
+                P = 1,
+                M = (uint)((ulong)memlimit / 1024),
+                T = (uint)opslimit,
+            };
+        }
+
         internal override bool TryDeriveBytesCore(
             ReadOnlySpan<byte> password,
             ReadOnlySpan<byte> salt,
-            ulong opslimit,
-            UIntPtr memlimit,
+            ref PasswordHashParameters parameters,
             Span<byte> bytes)
         {
             Debug.Assert(salt.Length == crypto_pwhash_argon2i_SALTBYTES);
+            Debug.Assert(parameters.Algorithm == this);
+            Debug.Assert(parameters.Argon2Parameters.P == 1);
             Debug.Assert(!bytes.IsEmpty);
 
             int error;
@@ -97,8 +114,8 @@ namespace NSec.Cryptography
                     ref password.DangerousGetPinnableReference(),
                     (ulong)password.Length,
                     ref salt.DangerousGetPinnableReference(),
-                    opslimit,
-                    memlimit,
+                    parameters.Argon2Parameters.T,
+                    (UIntPtr)((ulong)parameters.Argon2Parameters.M * 1024),
                     crypto_pwhash_argon2i_ALG_ARGON2I13);
             }
             else
@@ -118,8 +135,8 @@ namespace NSec.Cryptography
                         ref password.DangerousGetPinnableReference(),
                         (ulong)password.Length,
                         ref salt.DangerousGetPinnableReference(),
-                        opslimit,
-                        memlimit,
+                        parameters.Argon2Parameters.T,
+                        (UIntPtr)((ulong)parameters.Argon2Parameters.M * 1024),
                         crypto_pwhash_argon2i_ALG_ARGON2I13);
 
                     temp.Slice(0, bytes.Length).CopyTo(bytes);

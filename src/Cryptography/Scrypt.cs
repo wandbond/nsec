@@ -120,23 +120,42 @@ namespace NSec.Cryptography
             memlimit = (UIntPtr)(1UL << (21 + strength / 2));  //  2^24, 2^27 or 2^30
         }
 
+        internal override void PickParameters(
+            int strength,
+            out PasswordHashParameters parameters)
+        {
+            PickParameters(strength, out ulong opslimit, out UIntPtr memlimit);
+            PickParameters(opslimit, memlimit, out int nlog2, out int p, out int r);
+
+            parameters.Algorithm = this;
+            parameters.Argon2Parameters = default(Argon2Parameters);
+            parameters.ScryptParameters = new ScryptParameters
+            {
+                N = 1UL << nlog2,
+                R = (uint)r,
+                P = (uint)p,
+            };
+        }
+
         internal override bool TryDeriveBytesCore(
             ReadOnlySpan<byte> password,
             ReadOnlySpan<byte> salt,
-            ulong opslimit,
-            UIntPtr memlimit,
+            ref PasswordHashParameters parameters,
             Span<byte> bytes)
         {
             Debug.Assert(salt.Length == crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
+            Debug.Assert(parameters.Algorithm == this);
 
-            int error = crypto_pwhash_scryptsalsa208sha256(
-                ref bytes.DangerousGetPinnableReference(),
-                (ulong)bytes.Length,
+            int error = crypto_pwhash_scryptsalsa208sha256_ll(
                 ref password.DangerousGetPinnableReference(),
-                (ulong)password.Length,
+                (UIntPtr)password.Length,
                 ref salt.DangerousGetPinnableReference(),
-                opslimit,
-                memlimit);
+                (UIntPtr)salt.Length,
+                parameters.ScryptParameters.N,
+                parameters.ScryptParameters.R,
+                parameters.ScryptParameters.P,
+                ref bytes.DangerousGetPinnableReference(),
+                (UIntPtr)bytes.Length);
 
             return error == 0;
         }
