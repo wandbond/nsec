@@ -181,7 +181,7 @@ namespace NSec.Cryptography
         internal override bool TryReadAlgorithmIdentifier(
             ref Asn1Reader reader,
             out ReadOnlySpan<byte> salt,
-            out PasswordHashStrength strength)
+            out PasswordHashParameters parameters)
         {
             bool success = true;
             reader.BeginSequence();
@@ -196,26 +196,16 @@ namespace NSec.Cryptography
             reader.End();
             success &= reader.Success;
 
-            // libsodium does not allow passing cost, blockSize and 
-            // parallelization directly to the scrypt implementation, so we
-            // search for an opslimit and memlimit pair that yields the same
-            // values.
-            strength = 0;
-            if (success)
+            parameters.Algorithm = this;
+            parameters.Argon2Parameters = default(Argon2Parameters);
+            parameters.ScryptParameters = new ScryptParameters
             {
-                for (int i = 6; i <= 24; i += 2)
-                {
-                    PickParameters(i, out ulong opslimit, out UIntPtr memlimit);
-                    PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
-                    if ((cost == 1L << N_log2) && (blockSize == r) && (parallelization == p))
-                    {
-                        strength = (PasswordHashStrength)i;
-                        return true;
-                    }
-                }
-            }
+                N = (ulong)cost,
+                R = (uint)blockSize,
+                P = (uint)parallelization,
+            };
 
-            return false;
+            return success;
         }
 
         internal override bool TryVerifyPasswordCore(
@@ -235,16 +225,15 @@ namespace NSec.Cryptography
         internal override void WriteAlgorithmIdentifier(
             ref Asn1Writer writer,
             ReadOnlySpan<byte> salt,
-            PasswordHashStrength strength)
+            ref PasswordHashParameters parameters)
         {
-            PickParameters((int)strength, out ulong opslimit, out UIntPtr memlimit);
-            PickParameters(opslimit, memlimit, out int N_log2, out int p, out int r);
+            Debug.Assert(parameters.Algorithm == this);
 
             writer.End();
             writer.End();
-            writer.Integer(p);
-            writer.Integer(r);
-            writer.Integer(1L << N_log2);
+            writer.Integer((int)parameters.ScryptParameters.P);
+            writer.Integer((int)parameters.ScryptParameters.R);
+            writer.Integer((long)parameters.ScryptParameters.N);
             writer.OctetString(salt);
             writer.BeginSequence();
             writer.ObjectIdentifier(s_oid.Bytes);
