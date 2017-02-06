@@ -126,6 +126,20 @@ namespace NSec.Cryptography.PasswordBased
             }
         }
 
+        internal bool TryDecrypt(
+            string password,
+            ReadOnlySpan<byte> salt,
+            ref PasswordHashParameters parameters,
+            ReadOnlySpan<byte> nonce,
+            ReadOnlySpan<byte> ciphertext,
+            Span<byte> plaintext)
+        {
+            using (Key key = _passwordHashAlgorithm.DeriveKey(password, salt, ref parameters, _encryptionAlgorithm))
+            {
+                return _encryptionAlgorithm.TryDecrypt(key, nonce, ReadOnlySpan<byte>.Empty, ciphertext, plaintext);
+            }
+        }
+
         internal bool TryReadAlgorithmIdentifier(
             ref Asn1Reader reader,
             out ReadOnlySpan<byte> salt,
