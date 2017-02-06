@@ -129,14 +129,14 @@ namespace NSec.Cryptography.PasswordBased
         internal bool TryReadAlgorithmIdentifier(
             ref Asn1Reader reader,
             out ReadOnlySpan<byte> salt,
-            out PasswordHashStrength strength,
+            out PasswordHashParameters parameters,
             out ReadOnlySpan<byte> nonce)
         {
             bool success = true;
             reader.BeginSequence();
             success &= reader.ObjectIdentifier().SequenceEqual(s_oid.Bytes);
             reader.BeginSequence();
-            success &= PasswordHashAlgorithm.TryReadAlgorithmIdentifier(ref reader, out salt, out strength);
+            success &= PasswordHashAlgorithm.TryReadAlgorithmIdentifier(ref reader, out salt, out parameters);
             success &= EncryptionAlgorithm.TryReadAlgorithmIdentifier(ref reader, out nonce);
             reader.End();
             reader.End();
@@ -147,13 +147,13 @@ namespace NSec.Cryptography.PasswordBased
         internal void WriteAlgorithmIdentifier(
             ref Asn1Writer writer,
             ReadOnlySpan<byte> salt,
-            PasswordHashStrength strength,
+            ref PasswordHashParameters parameters,
             ReadOnlySpan<byte> nonce)
         {
             writer.End();
             writer.End();
             EncryptionAlgorithm.WriteAlgorithmIdentifier(ref writer, nonce);
-            PasswordHashAlgorithm.WriteAlgorithmIdentifier(ref writer, salt, strength);
+            PasswordHashAlgorithm.WriteAlgorithmIdentifier(ref writer, salt, ref parameters);
             writer.BeginSequence();
             writer.ObjectIdentifier(s_oid.Bytes);
             writer.BeginSequence();
