@@ -9,13 +9,15 @@ namespace NSec.Tests.Kat
     // gcmDecrypt256.rsp
     public static class KatGcmDecrypt256
     {
-        public static readonly TheoryData<string[]> TestVectors = Utilities.LoadTheoryData(typeof(KatGcmDecrypt256));
+        public static readonly TheoryData<string[]> TestVectors = Aes256Gcm.IsAvailable
+            ? Utilities.LoadTheoryData(typeof(KatGcmDecrypt256))
+            : new TheoryData<string[]> { null };
 
         [Theory]
         [MemberData(nameof(TestVectors))]
         public static void Test(string[] testVector)
         {
-            if (!Aes256Gcm.IsAvailable)
+            if (testVector == null)
                 return;
 
             var key = testVector[0];
